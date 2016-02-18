@@ -1,0 +1,523 @@
+\documentclass[a4paper,8pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath,amsthm,thmtools}
+\usepackage{amsfonts}
+\usepackage{proof}
+\usepackage{color}
+\usepackage{amssymb}
+
+\newcommand{\constre}[1]{\ensuremath{\langle\langle\,#1\,\rangle\rangle_{e}}}
+\newcommand{\constrc}[1]{\ensuremath{\langle\langle\,#1\,\rangle\rangle_{s}}}
+\newcommand{\constrd}[1]{\ensuremath{\langle\langle\,#1\,\rangle\rangle_{d}}}
+
+\begin{document}
+
+     \title{Reconstrução de tipos em C}
+
+     \maketitle
+     
+
+     \section{Introdução}\label{intro}
+
+     O objetivo deste texto é apresentar o desenvolvimento de um
+     protótipo de ferramenta para inferir declarações de tipos não
+     presentes em programas C. Neste documento descreveremos
+     a sintaxe núcleo para programas C (Seção~\ref{corecsyn}), a
+     sintaxe de restrições (Seção~\ref{constraintsyn}) e a descrição
+     do resolvedor de restrições utilizado
+     (Seção~\ref{constraintsolver}).
+
+     \section{Sintaxe da Linguagem Fonte}\label{corecsyn}
+
+     Nas figuras seguintes, apresentamos a sintaxe da linguagem núcleo
+     considerada. Nesta figuras, utilizaremos as seguintes metavariáveis.
+
+     \begin{figure}[h]
+     \begin{tabular}{|l|l|}
+       \hline
+       Símbolo & Significado \\ \hline
+		$l$ & {literal} \\
+		$x$ & {variável}\\
+		$f$  & {identificador de função} \\
+		$\tau$ & {tipo}\\
+		$\circ$ & {operador binário qualquer}\\
+                $\rho : l \to \tau$ & {função para atribuir tipos a
+                                      literais}\\
+                $P$ & {programa} \\
+                $D$ & {declaração} \\
+                $C$ & {comando} \\
+                $E$ & {expressão}\\
+		\hline
+		\end{tabular}
+           \centering
+           \caption{Metavariáveis}
+           \label{figmetavar}
+       \end{figure}
+
+     Neste trabalho consideramos que um programa é uma lista de
+     declarações que podem ser definições de tipos (typedef's) e
+     funções. Uma definição de tipo é formada por um tipo e o novo 
+     nome atribuído a este. Por sua vez, Funções são descritas por seu 
+     nome, tipo de retorno, parâmetros e uma lista de comandos que 
+     compõe o corpo desta. Abaixo apresentamos a sintaxe de
+     declarações, em que elementos em fonte \texttt{typewriter}
+     denotam terminais.
+     
+     \begin{figure}[h]
+         \[
+               \begin{array}{lcl}
+                   P & ::=    & D^*\\
+                   D & ::=   & \texttt{typedef }\tau\:\:x\\
+                      & \mid & \tau\:f\:\texttt{(}ps\texttt{)} \texttt{\{}\mathbb{C}^*\texttt{\}} \\
+                   ps & ::= & \tau\:x \,\mid\,(\texttt{,}ps)^*
+               \end{array}
+         \]
+         \centering
+         \caption{Sintaxe de programas}
+         \label{figprogsyn}
+     \end{figure}
+
+     A sintaxe de tipos é bastante direta. Representaremos tipos de
+     funções usando o construtor de tipos $\to$, de maneira similar ao
+     utilizado em linguagens funcionais como Haskell. 
+     Outro ponto é que não consideramos
+     como tipo da linguagem arranjos visto que estes podem ser
+     representados como ponteiros.
+
+     \begin{figure}[h]
+       \[
+         \begin{array}{lcll}
+           \tau & ::= & \textbf{B} & \{\text{construtores de tipos:
+                                     int, bool, etc.}\}\\
+                & \mid & \star\, \tau & \{\text{ponteiros}\} \\
+                & \mid & \{x_i : \tau_i\}^{i=1..n} & \{\text{registros}\} \\
+                & \mid & \tau \to \tau & \{\text{tipos de
+                                           funções}\}\\
+               & \mid & \alpha & \{\text{variáveis de tipos}\}
+         \end{array}
+       \]
+       \centering
+       \caption{Sintaxe de tipos}
+       \label{figtypesyn}
+     \end{figure}
+
+     A metavariável \textbf{t} representa tipos que não possuem
+     variáveis (i.e. tipos instanciados). Denotamos por $fields(\tau)$
+     uma função que retorna o conjunto de campos de um tipo
+     $\tau$. Caso $\tau$ não seja um registro, $fields(\tau) = \emptyset$.
+     
+     Existem 10 tipos de comandos na linguagem considerada: Chamadas de
+     função, retorno de função, definição de variável, atribuição de
+     variável, atribuição a um item de um arranjo, atribuição a um
+     ponteiro, atribuição a um campo (de registro), atribuição a um
+     campo em um ponteiro para registro, comandos de repetição e condicional.
+
+     \begin{figure}[h]
+       \[
+         \begin{array}{lcll}
+           \mathbb{C} & ::=   & \tau\:x\:=\:e & \{\text{var. def.}\} \\
+             & \mid & x\:=\:e & \{\text{atrib. var.}\} \\
+             & \mid & \star\,x\:=\:e & \{\text{atrib. pont.}\} \\
+             & \mid & x[e]\:=\:e &\{\text{atrib. arranjo}\} \\
+             & \mid & x.x'\: = \: e & \{\text{atrib. campo}\} \\
+             & \mid & x\to x\: = \: e & \{\text{atrib. campo pont.}\}\\
+             & \mid & f(e^*) & \{\text{chamada de função}\} \\
+             & \mid & \texttt{return }e & \{\text{retorno}\} \\
+             & \mid & \texttt{while (}e \texttt{)\{} \mathbb{C}^*
+                      \texttt{\}} & \{\text{while}\} \\
+             & \mid & \texttt{if (} e \texttt{) \{}\mathbb{C}^*
+                      \texttt{\}} & \{\text{if}\} \\
+         \end{array} \]
+       \centering
+       \caption{Sintaxe de comandos}
+       \label{figcmdsyn}
+    \end{figure}
+
+    A sintaxe de expressões é apresentada na figura seguinte. A
+    linguagem núcleo considerada consiste de literais, variáveis,
+    acesso a campo, acesso a arranjo, coerção, expressões contendo
+    operadores binários, chamadas de função e outras expressões
+    relacionadas ao uso de ponteiros.
+
+    \begin{figure}[h]
+       \[
+         \begin{array}{lcll}
+           e & ::= & l & \{\text{literal}\} \\
+             & \mid & x & \{\text{variável}\} \\
+             & \mid & e . x & \{\text{acesso a campo}\}\\
+             & \mid & e\,[e_1] & \{\text{accesso arranjo}\} \\
+             & \mid & (\tau)\,e & \{\text{casting}\} \\
+             &\mid & e\circ e' & \{\text{bin op}\} \\
+             & \mid & \&\,e & \{\text{address}\} \\
+             & \mid & \star\,e & \{\text{deref. ponteiro}\}\\
+             & \mid & e \to x & \{\text{ref. campo ponteiro}\}\\
+             & \mid & f(e_i)^{i=0..n} & \{\text{chamada função}\}\\
+         \end{array} \]
+         \centering
+         \caption{Sintaxe de expressões}
+         \label{exprsyn}
+    \end{figure}
+
+     \section{Sintaxe da Linguagem de Restrições}\label{constraintsyn}
+
+     Antes de apresentarmos a sintaxe de restrições, mostraremos sua
+     interpretação intuitiva. Esta é apresentada abaixo.
+
+       \begin{itemize}
+           \item Existência de definição de tipo: $typedef\:\tau\:as\:\tau'$.
+           \item Existência de declaração de variável:
+             $def\:x\,:\,\tau \text{ in } \mathbb{K}$.
+           \item Igualdade de tipos: $\tau \equiv \tau'$.
+	   \item Existência de campos: $has(\tau,x:\tau')$ --- o campo $x'
+             : \tau'$ é parte do tipo $\tau$.
+           \item Nova variável de tipo: $\exists \,\alpha. \mathbb{K}$
+       \end{itemize}
+
+     A sintaxe (abstrata) de restrições é apresentada a seguir. 
+
+     \begin{figure}[h]
+        \[
+             \begin{array}{lcl}
+                 \mathbb{K} & ::= & \tau \equiv \tau \\
+                                    & \mid & x \equiv \tau \\
+                                    & \mid & typedef\:\tau\:as\:\tau \\
+                                    & \mid & has(\tau, x' : \tau') \\
+                                    & \mid & def\:x:\tau\:\text{ in
+                                             }\mathbb{K}\\
+                                    & \mid &
+                                             \exists\,\alpha.\mathbb{K}\\
+                                    & \mid & \mathbb{K}\,\land\,\mathbb{K}
+             \end{array}
+        \]
+        \centering
+        \caption{Sintaxe de restrições}
+        \label{figconstrsyn}
+      \end{figure}
+
+      A seguir apresentamos a sintaxe concreta de restrições.
+
+     \begin{figure}[h]
+       \begin{tabular}{lcl}
+          \texttt{C} & \texttt{::=} & \texttt{T = T} \\
+                          & $\mid$     & \texttt{typedef T as T}\\
+                          & $\mid$     & \texttt{typeof(x) = T}\\
+                          & $\mid$     & \texttt{has(T, x : T)}\\
+                          & $\mid$     & \texttt{def x : T in C}\\
+                          & $\mid$     & \texttt{exists a. C}\\
+                          & $\mid$     & \texttt{C , C}\\
+                          & $\mid$     & \texttt{(C)}\\
+       \end{tabular}
+        \centering
+        \caption{Sintaxe concreta de restrições}
+        \label{concreta}
+      \end{figure}
+
+      Nesta sintaxe, usamos as meta-variáveis \texttt{T} para
+      representar tipos, \texttt{x} identificadores e \texttt{a}
+      denota uma variável de tipo.
+
+     \section{Semântica de Restrições}\label{semantics}
+
+     A linguagem de restrições é uma ``interface'' entre a sintaxe
+     concreta da linguagem C e o resolvedor de restrições. Como
+     restrições são expressas como fórmulas da lógica extraídas do 
+     programa analisado, o próprio programa constitui um modelo 
+     para suas restrições.
+
+     Assim como fórmulas da lógica de primeira ordem, restrições são
+     interpretadas em um universo de Herbrand. A interpretação de
+     constraints é dada por um julgamento 
+     $\phi ; \varphi ; \Theta \models \mathbb{K}$ em que $\phi$ é uma
+     função finita que associa variáveis (de tipos) a tipos, $\varphi$
+     associa variáveis de programa a tipos e $\Theta$ é uma função
+     que associa nomes de tipos a sua definição.
+
+     \[
+          \begin{array}{cc}
+      \infer[_{(CEmpty)}]{\phi ; \varphi ; \Theta \models true}{} & 
+      \infer[_{(CEq)}]{\phi ; \varphi ; \Theta \models \tau_1 =
+                                                                   \tau_2}{\phi(\tau_1)
+                                                                   =
+                                                                   \phi(\tau_2)}\\
+        \\ 
+       \infer[_{(CConj)}]{\phi ; \varphi ; \Theta \models K_1 \land K_2}
+                            {\phi ; \varphi ; \Theta \models K_1 & 
+                             \phi ; \varphi ; \Theta \models K_2 } &
+        \infer[_{(CExists)}]{\phi ; \varphi ; \Theta \models \exists
+                                                                     \alpha
+                                                                     . K}
+                                {\phi [\alpha \mapsto \textbf{t}] ; \varphi ; \Theta \models
+                                                                    K
+                                                                    }
+            \\                                 
+\\
+
+\infer[_{(CVar)}]{\phi ; \varphi ; \Theta \models x = \tau}
+                     {\varphi(x) = \phi(\tau) } &
+\infer[_{(CDef)}]{\phi ; \varphi ; \Theta \models def\:x : \tau\:in\:
+                                                  K}
+                      {\phi ; \varphi [x \mapsto \phi(\tau) ]; \Theta
+                                                  \models K} \\
+\\
+\infer[_{(CHas)}]{\phi ; \varphi ; \Theta \models has(\tau, x : \tau')}
+                      {x : \tau'  \in fields(\Theta(\tau))} &
+\infer[_{(CTyDef)}]{\phi ; \varphi ; \Theta \models typedef\: \tau\: as\:
+                                                              \tau'}
+                        {\phi ; \varphi ; \Theta \models \Theta(\phi(\tau)) =
+                                                              \phi(\tau')}                                      
+                                               
+            
+          \end{array}
+     \]
+
+     Dizemos que $\mathbb{K}_2$ é provável a partir de $\mathbb{K}_1$,
+     $\mathbb{K}_1\Vdash\mathbb{K}_2$, se e somente se, para todos
+     ambientes $\phi,\varphi$ e $\Theta$; 
+     $\phi;\varphi;\Theta\models\mathbb{K}_1$ implica
+     $\phi;\varphi;\Theta\models\mathbb{K}_2$. Por sua vez,
+     dizemos que $\mathbb{K}_1$ é equivalente a $\mathbb{K}_2$, se
+     $\mathbb{K}_1\Vdash \mathbb{K}_2$ e $\mathbb{K}_2\Vdash \mathbb{K}_1$
+
+    \section{Sistema de tipos}
+
+    Nesta seção apresentamos o sistema de tipos da linguagem fonte
+    considerada. Este é representado como um julgamento 
+    FORMA DO JULGAMENTO.
+
+    \begin{figure}
+         \[
+             aa
+         \]
+         \centering
+         \caption{Regras para expressões}
+         \label{exptyperules}
+    \end{figure}
+
+
+      
+    \section{Especificação do Algoritmo de Inferência}
+
+     \subsection{Coletando Restrições}\label{constrcollect}
+
+     O processo de geração de restrições consiste em percorrer a
+     sintaxe do programa para construção de uma fórmula que, se
+     satisfazível, seu modelo é dado pelas declarações de tipo
+     no programa fornecido como entrada. 
+
+     É importante notar que é responsabilidade
+     do processo de geração a implementação da função que calcula o
+     tipo de literais ($\rho$).
+
+
+     O gerador de restrições é apresentado nas figuras \ref{figgen1},
+     \ref{figgen2} e \ref{figgen3}.
+
+     \begin{figure}[h]
+       \[\small{
+            \begin{array}{lcl}
+                \constre{l : \tau} & = & \rho(l) \equiv \tau\\
+                \constre{x : \tau} & = & x \equiv \tau \\
+                \constre{\circ : \tau} & = & \circ \equiv \tau \\
+                \constre{f : \tau\to \tau'} & = & f \equiv
+                                                        \tau\to
+                                                        \tau' \\
+                \constre{e.x : \tau} & = & \exists
+                                          \alpha_1\,\alpha_2. \constre{e
+                                          : \alpha_1} \land \constre{x
+                                          : \alpha_2} \land \\
+                          & & has(\alpha_1,x:\alpha_2) \land \tau
+                              \equiv \alpha_2\\
+                \constre{e[e_1] : \tau} & = & \exists
+                                         \alpha_1\alpha_2\alpha_3. \constre{e:\alpha_1}
+                                             \land\constre{e_1: \alpha_2}\land\\
+                         & & \alpha_1\equiv\star\,\alpha_3 \land \tau
+                             \equiv\alpha_3 \land \alpha_2 \equiv int\\
+                \constre{(\tau')\,e:\tau} & = & \exists \alpha. typedef\:\tau'\:as\:\alpha\land\constre{e : \tau} \land
+                                               \tau \equiv \tau'\\
+                \constre{f(e^{i=1..n}) : \tau} & = & \exists
+                                                    \alpha^{i=1..n}. \bigwedge_{i=1..n}\constre{e_i:\alpha_i}
+                                                    \land \constre{f :
+                                                    \alpha^{i=1..n}
+                                                    \to \tau} \\
+                     \constre{e \circ e' : \tau} & = & \exists
+                                                      \alpha_1\alpha_2.\constre{e
+                                                      :\alpha_1} \land
+                                                      \constre{e' :
+                                                      \alpha_2} \land
+                                                      \constre{\circ :
+                                                      \alpha_1\to\alpha_2\to\tau}\\
+                     \constre{\&\,e : \tau} & = & \exists \alpha\,
+                                                 \alpha'. \constre{e :
+                                                 \alpha'} \land
+                                                 \alpha \equiv \star \alpha'
+                                                 \land \tau \equiv \alpha\\
+                     \constre{\star\,e : \tau} & = & \exists
+                                                    \alpha. \constre{e
+                                                    : \alpha} \land
+                                                    \alpha \equiv \star \tau\\
+                     \constre{e\to x : \tau} & = & \exists
+                                                  \alpha_1\alpha_2\alpha_3. \constre{e
+                                                  :\alpha_1} \land
+                                                  \constre{x :
+                                                  \alpha_3} \land
+                                                  \alpha_1 \equiv \star\alpha_2
+                                                  \land\\
+                          & & has(\alpha,x : \alpha_3) \land \tau
+                              \equiv \alpha_3\\
+            \end{array}}
+       \]
+       \centering
+       \caption{Gerador de restrições --- parte 1}
+       \label{figgen1}
+     \end{figure}
+
+
+     \begin{figure}[h]
+       \[
+          \small{
+           \begin{array}{lcl}
+               \constrc{\emptyset, \tau} & = & true \\
+               \constrc{\tau'\:x := e; S, \tau} & = & \exists \alpha. \constre{e : \alpha} \land
+                                              typedef\:\tau' \: as \:
+                                                     \alpha \land
+                                              def\,x:\alpha\,in\,\constrc{S
+                                                     , \tau}
+             \land \tau' \equiv \alpha\\
+               \constrc{x := e ; S, \tau} & = & \exists \alpha. \constre{x : \alpha}\land\constre{e : \alpha} \land
+                                                      \constrc{S , \tau}\\ 
+               \constrc{\star\,x := e ; S, \tau} & = & \exists \alpha \alpha'. \constre{x : \alpha'}\land\constre{e : \alpha} \land
+                                                      \alpha' \equiv
+                                                \star
+                                                      \alpha\land\constrc{S
+                                                      , \tau}\\ 
+               \constrc{x[e'] := e ; S , \tau} & = &
+                                             \exists\alpha_1\alpha_2\alpha_3.\constre{e'
+                                             : \alpha_1}\land \alpha_1
+                                             \equiv int \land \constre{e :
+                                             \alpha_2} \land \\ 
+                       & & \constre{x : \alpha_3} \land
+                           \alpha_3 \equiv \star\,\alpha_2 \land
+                           \constrc{S , \tau}\\
+               \constrc{f(e^{i=1..n}) ; S , \tau} & = & \exists
+                                            \alpha_{i=1..n +1}.\bigwedge_{i
+                                            = 1..n}\constre{e_i :
+                                            \alpha_i} \land \constre{f
+                                            : \alpha_{i = 0.. n} \to
+                                            \alpha_{n + 1}} \land
+                                                \constrc{S , \tau}\\
+               \constrc{\texttt{while (} e
+             \texttt{)\{}C\texttt{\}} ; S , \tau} &= & \constre{e : bool}
+                                                     \land
+                                                     \constrc{C
+                                                            , \tau}
+                                                                \land \constrc{S,\tau}\\
+             \constrc{\texttt{if (} e \texttt{)\{} C
+             \texttt{\}} ; S , \tau} & = & \constre{e : bool}
+                                                     \land
+                                                     \constrc{C
+                                       , \tau} \land \constrc{S,\tau}\\
+             \constrc{\texttt{return }e, \tau} & = & \constre{e : \tau}
+           \end{array}}
+       \]
+       \centering
+       \caption{Gerador de restrições --- parte 2}
+       \label{figgen2}
+     \end{figure}
+
+     \begin{figure}[h]
+       \[
+         \small{
+           \begin{array}{lcl}
+               \constrd{\emptyset} & = & true \\
+               \constrd{\texttt{typedef }\tau\:\:x\,,D} & = &
+                                                             typedef\:x
+                                                             \:as\:\tau
+                                                             \land \constrd{D}\\
+               \constrd{\tau\:f\:\texttt{(}(\tau\:x)^{i=1..n}\texttt{)}
+             \texttt{\{}C^*\texttt{\}} , D} & = & \exists \alpha^{i =
+                                                  1..n}. (typedef\:\tau_i\:as\:\alpha_i)^{1..n}
+                                                  \land def\,\,f :
+                                                       \tau^{i =
+                                                       1.. n}\to \tau
+                                                       \:in\\
+                           & &
+                                                       (def\,\,x_i :
+                                                       \tau_i)^{i
+                                                       = 1..n}\: in\:
+                                                       \constrc{C,\tau}
+                                                       \land \constrd{D}
+           \end{array}
+         }
+       \]
+       \centering
+       \caption{Gerador de restrições --- parte 3}
+        \label{figgen3}
+     \end{figure}
+     
+     \subsection{Resolvedor de Restrições}\label{constraintsolver}
+
+     O resolvedor é apenas uma pequena modificação de um algoritmo de
+     unificação. Este pode ser resumido nos seguintes passos:
+     \begin{enumerate}
+          \item Coletar definições, restrições de campos e inserir
+            variáveis ``fresh'' no lugar de variáveis existencialmente
+            quantificadas.
+          \item Expandir definições nas restrições.
+          \item Resolver restrições de igualdade usando unificação.
+          \item Aplicar a substituição gerada pela unificação nas
+            restrições de registros.
+          \item Gerar definições de registros com base nas restrições
+            de campos.
+     \end{enumerate}
+
+%      \section{Exemplos}
+
+%      Nesta seção apresento exemplos enviados pelo Fernando e as
+%      suas respectivas restrições.
+
+%      \subsection{Exemplo 1 --- arquivo T0.c}
+
+%      Código C.
+
+%      \begin{verbatim}
+% T foo (int i) {
+%    return i + 1;
+% }
+
+%   \end{verbatim}
+
+%      Restrição
+
+%      \begin{verbatim}
+% isdef T , 
+%    (def foo = (int,T) in 
+%       def i = int in 
+%           exists x_1 . exists x_2 . i = x_1 , (x_2 = int , + =
+%    (x_1,x_2,T)))   
+%    \end{verbatim}
+
+%      \subsection{Exemplo 2 --- arquivo T3.c}
+
+%      Código C.
+
+%      \begin{verbatim}
+% int main (){
+%    T t;
+%    t.i = 0;
+%    t.next = &t;
+% }
+%   \end{verbatim}
+
+%      Restrição
+
+%      \begin{verbatim}
+% def main = (int) in 
+%    isdef T , def t = T in , 
+%       (exists x_1 . x_1 = int , (i = x_1 , has(t ,x_1 i)) , 
+%          (exists x_2 . 
+%               exists x_3 . t = x_3 , x_2 = x_3 * , 
+%                   (next = x_2 , has(t ,x_2 next))))
+%    \end{verbatim}
+
+\end{document}
