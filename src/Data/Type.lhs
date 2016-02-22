@@ -37,11 +37,4 @@ Free type variables
 > fv (Struct fs _) = foldr (union . fv . ty) [] fs
 > fv (Pointer t) = fv t
           
-Name of a type
-          
-> nameOf :: Ty -> Name
-> nameOf (TyCon n) = n
-> nameOf (TyVar n) = n
-> nameOf (Struct _ n) = n
-> nameOf _ = error "This is impossible! Data.Type.nameOf\n line 35"
 

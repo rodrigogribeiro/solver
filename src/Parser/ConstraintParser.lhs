@@ -81,7 +81,7 @@ Constraint parser
 >                  build _ n _ ctr = Exists n ctr 
 
 > typeDefParser :: Parser Constraint
-> typeDefParser = build <$> reserved "typedef" <*> nameParser <*>
+> typeDefParser = build <$> reserved "typedef" <*> typeParser <*>
 >                           reserved "as"      <*> typeParser
 >                 where
 >                    build _ n _ t = TypeDef n t
@@ -89,11 +89,13 @@ Constraint parser
 Type parser
 
 > typeParser :: Parser Ty
-> typeParser = choice [ tyVarParser
->                     , tyConParser
->                     , tyFunParser
->                     , structParser
->                     , pointerParser  
+> typeParser = option id (Pointer <$ string "*") <*> typeParser'
+     
+> typeParser' :: Parser Ty
+> typeParser' = choice [ tyVarParser
+>                      , tyConParser
+>                      , tyFunParser
+>                      , structParser
 >                     ]  
 
 > tyVarParser :: Parser Ty
@@ -120,9 +122,6 @@ Type parser
 
 > fieldParser :: Parser Field
 > fieldParser = flip Field <$> typeParser <*> nameParser
-
-> pointerParser :: Parser Ty
-> pointerParser = Pointer <$> (string "*" *> typeParser)
   
 Lexer definition
   

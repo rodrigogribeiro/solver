@@ -1,0 +1,11 @@
+exists alpha1.
+ typedef *int as alpha1, 
+  def f : (*int, int)  in 
+   def a : *int in 
+    exists alpha2.
+     exists alpha3.
+      typeof(a) = alpha3, alpha3 = *alpha2, 
+       typedef T as alpha2, def x : alpha2 in 
+        typeof(x) = int, 
+         alpha2 = T
+ 

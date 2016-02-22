@@ -48,3 +48,14 @@ Utilities for pretty printing
 >                                           <+> pprint ctr
 >     pprint (ctr :&: ctr') = pprint ctr <+> char ',' <+> pprint ctr'
 >     pprint Truth = text "Truth"                        
+
+
+Name of a type
+          
+> nameOf :: Ty -> Name
+> nameOf (TyCon n) = n
+> nameOf (TyVar n) = n
+> nameOf (Struct _ n) = n
+> nameOf (Pointer t) = Name ("*" ++ (show $ pprint t))                      
+> nameOf _ = error "This is impossible! Data.Type.nameOf\n line 35"
+      

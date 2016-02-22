@@ -5,6 +5,7 @@ Built-in types, operators and contexts
 > import Data.Type
 > import Data.Map (Map)
 > import qualified Data.Map as Map
+> import Utils.Pretty (nameOf)
      
 
 Initial typing definition     

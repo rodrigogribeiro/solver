@@ -81,7 +81,10 @@ Initial environment
 > removeBuiltIn :: Info -> Info
 > removeBuiltIn i = i{ varctx = Map.filter (not . snd) $
 >                                   varctx i Map.\\ initialVarCtx
->                    , tyctx = tyctx i Map.\\ initialTyCtx }                 
+>                    , tyctx = Map.filterWithKey notVar $
+>                                  tyctx i Map.\\ initialTyCtx }
+>                   where
+>                     notVar v t = all ((/= "alpha") . take 5) ([show $ pprint v, show $ pprint t])
 
 Unification stuff
 
@@ -265,7 +268,7 @@ Context construction from a constraint
 > build c@(_ :=: _) = return c
 > build (n :<-: t) = checkDef n t
 > build c@(Has t f) = insertField (nameOf t) f
-> build (TypeDef n t) = insertTypeDef n t
+> build (TypeDef n t) = insertTypeDef (nameOf n) t
 > build (Def n t c) = insertDef n t True >> build c
 > build (c :&: c') = liftM2 (:&:) (build c)
 >                                 (build c')
