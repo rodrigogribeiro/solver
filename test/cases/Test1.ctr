@@ -1,1 +1,0 @@
-exists alpha0. typedef T as alpha0, def f : (T,T) in def i : T in exists alpha1. exists alpha2. typeof(i) = alpha1 , int = alpha2, typeof(+) = (alpha1,alpha2,T)

@@ -7,7 +7,6 @@
 > import qualified Data.Map as Map
 > import Data.Maybe (isJust, fromJust)
   
-> import Data.Generics
 > import Data.Constraints
 > import Data.Type
 > import Data.BuiltIn    
@@ -17,304 +16,138 @@
 > import Control.Monad.State
 > import Control.Monad.Except    
 
+> import Solver.SolverMonad
+> import Solver.Unification    
 > import Solver.ConversionRules  
-> import Utils.Pretty  
-
-Simple context definition  
-
-> type VarCtx = Map Name (Ty,Bool) -- True if is a defined thing
-> type TyCtx =  Map Name Ty -- only type contructor names!
-
-Monad definition
-         
-> data Info = Info {
->               varctx  :: VarCtx
->             , tyctx   :: TyCtx
->             , counter :: Int }
->             deriving (Eq, Ord)
-
-> writeInfo :: Info -> String
-> writeInfo i = defs ++ typs
->             where
->                show' :: (Pretty a) => a -> String
->                show' = show . pprint
->                defs = Map.foldrWithKey (\n t ac -> show' (fst t) ++ " " ++ show' n ++
->                                                    ";\n" ++ ac) []  (varctx i)
->                typs = Map.foldrWithKey (\n t ac -> "typedef " ++ show' t ++
->                                                    " " ++ show' n ++ ";\n" ++ ac) [] (tyctx i)
-              
-Showing type inference Information
-
-> instance Show Info where
->    show i = "Var ctx:\n" ++ (show (varctx i)) ++
->             "\n\n" ++
->             "Ty ctx:\n" ++ (show (tyctx i))
-              
-Initial environment
-
-> initialInfo :: Constraint -> Info
-> initialInfo c = Info initialVarCtx
->                      initialTyCtx
->                      (length $ vars c)
-              
-
-> type SolverM a = ExceptT String (StateT Info IO) a              
+> import Utils.Pretty
 
 
-> solver :: Constraint -> IO Info
-> solver c = do
->             (x, c') <- runStateT (runExceptT (solve c))
->                                  (initialInfo c)           
->             return $ removeBuiltIn c'
-
-> testSolver :: Constraint -> IO ()
-> testSolver c = solver c >>= putStrLn . writeInfo
-              
-> solve :: Constraint -> SolverM ()
-> solve c = do
->             c' <- build c
->             eqs <- simplify c'
->             eqs' <- mapM replace eqs      
->             s <- unify eqs'     
->             updateEnv s
-
-> removeBuiltIn :: Info -> Info
-> removeBuiltIn i = i{ varctx = Map.filter (not . snd) $
->                                   varctx i Map.\\ initialVarCtx
->                    , tyctx = Map.filterWithKey notVar $
->                                  tyctx i Map.\\ initialTyCtx }
->                   where
->                     notVar v t = all ((/= "alpha") . take 5) ([show $ pprint v, show $ pprint t])
-
-Unification stuff
-
-> type Subst = Map Name Ty
-
-> nullSubst :: Subst
-> nullSubst = Map.empty             
-
-> unify :: [Constraint] -> SolverM Subst
-> unify [] = return nullSubst
-> unify ((t :=: t') : es)
->     = do
->        s <- unifyTy t t'
->        s' <- unify (map (apply' s) es)
->        return (s' @@ s)      
-
-> apply' :: Subst -> Constraint -> Constraint
-> apply' s (t :=: t') = (apply s t) :=: (apply s t')
-         
-
-> unifyTy :: Ty -> Ty -> SolverM Subst
-> unifyTy t t' = if convertible t t' then return nullSubst
->                  else unifyTy' t t'
-                   
-> unifyTy' :: Ty -> Ty -> SolverM Subst
-> unifyTy' (TyVar v) t
->     = varBind v t
-> unifyTy' t (TyVar v)
->     = varBind v t
-> unifyTy' t@(TyCon n) t'@(TyCon n')
->         | convertible t t' = return nullSubst            
->         | otherwise = unificationError t t'            
-> unifyTy' (Pointer t) (Pointer t')
->     = unifyTy t t'
-> unifyTy' (FunTy t ts) (FunTy t' ts')
->     = do
->         s  <- unifyTys ts ts'
->         s' <- unifyTy (apply s t)
->                       (apply s t')
->         return (s' @@ s)
-> unifyTy' (Struct fs n) (Struct fs' n')
->         | n /= n' = unificationError (TyCon n) (TyCon n')
->         | otherwise = unifyTys (map ty fs) (map ty fs')
-> unifyTy' t t' = unificationError t t'
-                
-
-> unifyTys :: [Ty] -> [Ty] -> SolverM Subst
-> unifyTys [] [] = return nullSubst            
-> unifyTys [] _ = wrongArgumentNumberError
-> unifyTys _ [] = wrongArgumentNumberError
-> unifyTys (t : ts) (t' : ts')
->     = do
->          s <- unifyTy t t'       
->          s' <- unifyTys (map (apply s) ts)
->                         (map (apply s) ts')
->          return (s' @@ s)               
-                
-> varBind :: Name -> Ty -> SolverM Subst
-> varBind n t
->     | n `elem` fv t = occursCheckError n t
->     | otherwise = return (Map.singleton n t)
-
-
-        
-> apply :: Subst -> Ty -> Ty
-> apply s t@(TyVar v)
->     = maybe t id (Map.lookup v s)
-> apply _ t@(TyCon _)
->     = t
-> apply s (FunTy t ts)
->     = FunTy (apply s t)
->             (map (apply s) ts)
-> apply s (Pointer t)
->     = Pointer (apply s t)
-> apply s (Struct fs n)
->     = Struct (map (apply' s) fs) n
->       where
->         apply' s f = Field (name f)
->                            (apply s (ty f))
-
-> unificationError :: Ty -> Ty -> SolverM a
-> unificationError t t' = throwError ("Cannot unify\n"  ++
->                                     (show $ pprint t) ++
->                                     "\nwith\n"        ++
->                                     (show $ pprint t'))
-
-> occursCheckError :: Name -> Ty -> SolverM a
-> occursCheckError n t' = throwError ("Cannot unify\n"  ++
->                                     (show $ pprint n) ++
->                                     "\nwith\n"        ++
->                                     (show $ pprint t'))
-
-
-> wrongArgumentNumberError :: SolverM a
-> wrongArgumentNumberError
->     = throwError "Wrong argument number error in function call"
-                                                                            
-> (@@) :: Subst -> Subst -> Subst
-> s1 @@ s2 = (Map.map (\t -> apply s1 t) s2) `Map.union` s1 
-                                      
-> updateEnv :: Subst -> SolverM ()
-> updateEnv s
->     = do
->         modify (\i ->
->             i{
->                varctx = Map.map (\ (t,b) -> (apply s t , b)) (varctx i)
->              , tyctx  = fixStruct $ Map.map (apply s) (tyctx i)
->              })
-
-> fixStruct :: Map Name Ty -> Map Name Ty
-> fixStruct = Map.mapWithKey sub . Map.filterWithKey rem 
->               where
->                 rem k v = not (isVarName k)
->                           
->                 sub n (Struct fs m) = Struct fs n
->                 sub n t = t
-
-                    
-> fresh :: SolverM Ty
-> fresh = do
->           i <- get
->           let n = counter i
->           put (i{counter = 1 + counter i})
->           return (TyVar (Name ("alpha" ++ show n)))    
-
-Insert a declaration
-            
-> insertDef :: Name -> Ty -> Bool -> SolverM Constraint
-> insertDef n t b = do
->                     i <- get
->                     let vctx = varctx i
->                     put (i{varctx = Map.insert n (t,b) vctx})
->                     return Truth
-
-Insert a type definition
-                    
-> insertTypeDef :: Name -> Ty -> SolverM Constraint
-> insertTypeDef n t = do
->                      i <- get
->                      let tctx = tyctx i
->                      maybe (put (i{tyctx = Map.insert n t tctx})
->                             >> return Truth)
->                            (return . ((:=:) t))
->                            (Map.lookup n tctx)
-
-Insert field definition
-
-> insField :: Ty -> Field -> SolverM Constraint
-> insField t@(Struct fs n) f
->     = do
->         let fs' = [f' | f' <- fs, name f' == name f]
->         if null fs' then
->             modify (\i -> i{tyctx = Map.insert n t (tyctx i)}) >>
->             return Truth
->           else
->               return ((ty (head fs')) :=: ty f)
-> insField (TyVar n) f
->     = do
->         let t = Struct [f] n
->         modify (\i -> i{tyctx = Map.insert n t (tyctx i)})
->         return ((TyVar n) :=: t)
-> insField t f = error ("It should not happen!\ninsField:" ++ show (pprint t))
-
-> insertField :: Name -> Field -> SolverM Constraint
-> insertField n f = maybe (insField (TyVar n) f)
->                         (flip insField f)
->                         =<< (gets (Map.lookup n . tyctx))
-
-
-> checkDef :: Name -> Ty -> SolverM Constraint
-> checkDef n t = do
->                 i <- get
->                 let vctx = varctx i
->                 maybe (insertDef n t False >> liftIO (print t) >> return (t :=: t))
->                       (return . ((:=:) t) . fst)
->                       (Map.lookup n vctx)
-     
-Context construction from a constraint
-
-> build :: Constraint -> SolverM Constraint
-> build c@(_ :=: _) = return c
-> build (n :<-: t) = checkDef n t
-> build c@(Has t f) = insertField (nameOf t) f
-> build (TypeDef n t) = insertTypeDef (nameOf n) t
-> build (Def n t c) = insertDef n t True >> build c
-> build (c :&: c') = liftM2 (:&:) (build c)
->                                 (build c')
-> build (Exists n c) = build c
-> build Truth = return Truth                     
-
-Remove unnecessary Truth constraints
-                          
-> simplify :: Constraint -> SolverM [Constraint]
-> simplify (Truth :&: c) = simplify c
-> simplify (c :&: Truth) = simplify c
-> simplify (c :&: c')
->     = do
->         c1 <- simplify c
->         c1' <- simplify c'
->         return (c1 ++ c1')
-> simplify c = return [c]
-
+> solver :: Constraint -> IO (Either String (TyCtx, VarCtx))
+> solver c = runSolverM (solve c) 0
   
-Replace typedef       
-
-> replace :: Constraint -> SolverM Constraint
-> replace (t :=: t') = liftM2 (:=:) (replaceTy t)
->                                   (replaceTy t')
-        
-
-> replaceTy :: Ty -> SolverM Ty
-> replaceTy t@(TyCon n)
->     = do
->         tctx <- gets tyctx
->         maybe (return t)
->               return
->               (Map.lookup n tctx)
-> replaceTy (Pointer t)
->     = liftM Pointer (replaceTy t)
-> replaceTy (FunTy t ts)
->     = liftM2 FunTy (replaceTy t)
->                    (mapM replaceTy ts)
-> replaceTy (Struct fs n)
->     = liftM (flip Struct n)
->             (mapM go fs)
->       where
->         go f = liftM (Field (name f))
->                      (replaceTy (ty f))
-> replaceTy t = return t                     
+> solve :: Constraint -> SolverM (TyCtx, VarCtx)
+> solve c = do
+>             (tc0,c') <- stage0 (TyCtx initialTyCtx) c
+>             (tcx, vcx, cs, s) <- stage1 tc0
+>                                         (VarCtx initialVarCtx)
+>                                         c'
+>             (tcx', vcx') <- stage2 tcx vcx cs s
+>             --liftIO (print $ pprint $ tcx)                
+>             let (a,b) = removeBuiltIn tcx' vcx'
+>             --liftIO (print $ pprint s)
+>             --liftIO (print $ pprint a)                                
+>             return (a,b)            
 
 
-> isVarName :: Name -> Bool
-> isVarName = (== "alpha") . take 5 . show . pprint             
+> removeBuiltIn :: TyCtx -> VarCtx -> (TyCtx, VarCtx)
+> removeBuiltIn tcx vcx = (TyCtx t', VarCtx v')
+>                         where
+>                           t' =  Map.filter (not . isVar) ((tyctx tcx) Map.\\ initialTyCtx)
+>                           v' = Map.filter (not . snd) ((varctx vcx) Map.\\ initialVarCtx)
+>                           isVar = ((==) "alpha") . (take 5) . show . pprint      
+
+
+> stage0 :: TyCtx -> Constraint -> SolverM (TyCtx, Constraint)
+> stage0 tctx (t :=: t')
+>        = return (tctx, (replaceTy tctx t) :=:
+>                        (replaceTy tctx t'))
+> stage0 tctx (n :<-: t)
+>        = return (tctx, n :<-: (replaceTy tctx t))
+> stage0 tctx (Has n (Field n' t))
+>        = return (tctx, Has n (Field n' (replaceTy tctx t)))
+> stage0 tctx (TypeDef t t')
+>        = return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx), Truth)
+> stage0 tctx (c :&: c')
+>        = do
+>            (tcx1, c1) <- stage0 tctx c
+>            (tcx2, c1') <- stage0 tcx1 c'
+>            return (tcx2, c1 :&: c1')
+> stage0 tctx (Exists n c)
+>        = stage0 tctx c
+> stage0 tctx (Def n t c)
+>        = do
+>           (tcx, c')  <- stage0 tctx c
+>           return (tcx, Def n (replaceTy tctx t) c')
+> stage0 tctx Truth
+>        = return (tctx, Truth)       
+
+> replaceTy :: TyCtx -> Ty -> Ty
+> replaceTy tctx t@(TyCon n)
+>     = maybe t id (Map.lookup n (tyctx tctx))
+> replaceTy tctx t@(TyVar _)
+>     = t
+> replaceTy tctx (FunTy t ts)
+>     = FunTy (replaceTy tctx t)
+>             (map (replaceTy tctx) ts)
+> replaceTy tctx (Pointer t)
+>     = Pointer (replaceTy tctx t)
+> replaceTy tctx (Struct fs n)
+>     = Struct (map (\f -> f{ty = replaceTy tctx (ty f)}) fs)
+>              n
+             
+> stage1 :: TyCtx -> VarCtx -> Constraint -> SolverM (TyCtx
+>                                                   , VarCtx
+>                                                   , [Constraint]
+>                                                   , Subst)
+> stage1 tctx vctx (t :=: t')
+>       = do
+>           s <- unify t t'
+>           return (tctx, vctx, [], s)
+> stage1 tctx vctx (n :<-: t)
+>       = case Map.lookup n (varctx vctx) of
+>             Just (t',_) ->
+>                 do
+>                   s <- unify t t'
+>                   return (tctx, vctx,[], s)
+>             Nothing -> return (tctx
+>                               , VarCtx $ Map.insert n (t, False) (varctx vctx)
+>                               , []
+>                               , nullSubst)
+> stage1 tctx vctx c@(Has _ _)
+>       = return (tctx, vctx, [c], nullSubst)
+> stage1 tctx vctx (TypeDef t t')
+>       = case Map.lookup (nameOf t) (tyctx tctx) of
+>             Just tx ->
+>                 do
+>                   s <- unify t' tx
+>                   return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx), vctx, [], s)
+>             Nothing -> return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx)
+>                               , vctx
+>                               , []
+>                               , nullSubst)
+> stage1 tctx vctx (c :&: c')
+>       = do
+>           --liftIO (print $ pprint c)
+>           (t1,v1,c1,s1) <- stage1 tctx vctx c
+>           --liftIO (print $ pprint c')                 
+>           (t2,v2,c2,s2) <- stage1 t1 v1 (apply s1 c')                  
+>           return ( TyCtx (Map.union (tyctx t1) (tyctx t2))
+>                  , VarCtx (Map.union (varctx v1) (varctx v2))
+>                  , c1 ++ c2
+>                  , s2 @@ s1)  
+> stage1 tctx vctx (Exists n c)
+>       = stage1 tctx vctx c
+> stage1 tctx vctx (Def n t c)
+>       = stage1 tctx (VarCtx $ Map.insert n (t,True) (varctx vctx)) c
+> stage1 tctx vctx Truth
+>       = return (tctx, vctx, [], nullSubst)
+
+
+> stage2 :: TyCtx -> VarCtx -> [Constraint] -> Subst -> SolverM (TyCtx
+>                                                               , VarCtx)
+> stage2 tctx vctx cs s
+>      = do
+>          let tctx' = TyCtx $ Map.map (apply s) (tyctx tctx)
+>              vctx' = VarCtx $ Map.map (\(a,b) -> (apply s a, b)) (varctx vctx)
+>              cs' = apply s cs
+>              fieldMap = foldr go Map.empty cs'
+>              go (Has n t) ac = maybe (Map.insert n [t] ac)
+>                                      (\ts -> Map.insert n (t:ts) ac)
+>                                      (Map.lookup n ac)
+>              tctx'' = TyCtx $ Map.foldrWithKey step Map.empty (tyctx tctx')
+>              step n t ac = maybe ac
+>                                  (\fs -> Map.insert n (Struct fs n) ac)
+>                                  (Map.lookup t fieldMap)
+>          --liftIO (mapM_ (print . pprint) cs')
+>          --liftIO (print $ pprint tctx'')       
+>          return (tctx'', vctx')

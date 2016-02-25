@@ -28,13 +28,5 @@ Definition of types
 >         | Pointer Ty
 >         deriving (Eq, Ord, Show, Data, Typeable)
 
-Free type variables
-          
-> fv :: Ty -> [Name]
-> fv (TyCon _) = []
-> fv (TyVar n) = [n]
-> fv (FunTy t ts) = foldr (union . fv) [] ( t: ts)
-> fv (Struct fs _) = foldr (union . fv . ty) [] fs
-> fv (Pointer t) = fv t
           
 

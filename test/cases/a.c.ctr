@@ -1,0 +1,15 @@
+exists alpha1.
+ exists alpha2.
+  typedef int as alpha1, 
+   typedef **int as alpha2, 
+    def main : (int, **int, int)  in 
+     def argc : int in 
+      def argv : **int in 
+       exists alpha3.
+        exists alpha4.
+         typedef int as alpha4, typeof(argc) = alpha3, alpha3 = int, 
+          typedef int as alpha3, def c : alpha3 in 
+           typeof(c) = bool, 
+            typeof(c) = int, 
+             alpha3 = int
+ 

@@ -17,10 +17,3 @@ Definition of constraints
 >                 | Exists Name Constraint    -- fresh variable introduction
 >                 | Truth  
 >                 deriving (Eq, Ord, Show, Data, Typeable)  
-
-
-> vars :: Constraint -> [Name]
-> vars (Exists n c) = n : vars c
-> vars (Def _ _ c) = vars c
-> vars (c :&: c') = vars c ++ vars c'
-> vars _ = []                  

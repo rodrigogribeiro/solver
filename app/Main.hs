@@ -1,9 +1,12 @@
 module Main where
 
-import Options.Applicative
+import Options.Applicative hiding ((<+>))
 import System.FilePath
 import Solver.ConstraintSolver
-import Parser.ConstraintParser    
+import Parser.ConstraintParser hiding (optional)
+import Utils.Pretty (pprint, (<+>), text)
+import Solver.SolverMonad (TyCtx (..), VarCtx(..))
+import qualified Data.Map as Map    
 
 data Config = Config {
                 inputFile  :: FilePath
@@ -39,9 +42,25 @@ execSolver fp s = case parser s of
                     Right c  ->
                         do
                           inf <- solver c
-                          writeFile (outfile fp)
-                                    (writeInfo inf)
-                                         
+                          case inf of
+                            Left err'  -> putStrLn err'
+                            Right inf' -> do
+                                            writeFile (outfile fp)
+                                                      (writeInfo inf')
+
+writeInfo :: (TyCtx, VarCtx) -> String
+writeInfo (tcx,vcx) = t ++ v
+                      where
+                        t = Map.foldrWithKey gentydef [] (tyctx tcx)
+                        v = Map.foldrWithKey genvardef [] (varctx vcx)    
+                        gentydef n t ac = (show $ text "typedef" <+>
+                                                 pprint t <+>
+                                                 pprint n <+>
+                                                 text ";\n") ++ ac
+                        genvardef n (t,_) ac = (show $ pprint t <+>
+                                                      pprint n <+>
+                                                      text ";\n") ++ ac                              
+                                                      
 main :: IO ()
 main = do
         cfg <- execParser opts

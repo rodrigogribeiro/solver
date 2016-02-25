@@ -2,7 +2,7 @@ Constraint Parser
 =================
 
 
-> module Parser.ConstraintParser (parser) where
+> module Parser.ConstraintParser (module Parser.ConstraintParser, module Text.Parsec) where
 
 > import Data.Functor
 > import Data.Functor.Identity
@@ -89,7 +89,9 @@ Constraint parser
 Type parser
 
 > typeParser :: Parser Ty
-> typeParser = option id (Pointer <$ string "*") <*> typeParser'
+> typeParser = option id (f <$> many1 (string "*")) <*> typeParser'
+>              where
+>                f = foldr (const ((.) Pointer)) id
      
 > typeParser' :: Parser Ty
 > typeParser' = choice [ tyVarParser
@@ -165,5 +167,5 @@ Constraint language def
 > constrDef = emptyDef {
 >               Tk.reservedOpNames = [":", "=", "->"] 
 >             , Tk.reservedNames = ["exists", "def", "in", "typedef"
->                                  , "as", "void", "struct", "has", "typeof"]
+>                                  , "as", "struct", "has", "typeof"]
 >             }             

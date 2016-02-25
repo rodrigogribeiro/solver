@@ -28,7 +28,7 @@ Utilities for pretty printing
 >                                                   (map pprint
 >                                                        (params ++ [ret])))
 >     pprint (Struct fs n) = text "struct" <+> pprint n <+>
->                            braces (hcat $ punctuate semi (map pprint fs))
+>                            braces (hcat $ (map pprint fs))
 >     pprint (Pointer t) = pprint t <> char '*'                              
 
                                   
@@ -57,5 +57,5 @@ Name of a type
 > nameOf (TyVar n) = n
 > nameOf (Struct _ n) = n
 > nameOf (Pointer t) = Name ("*" ++ (show $ pprint t))                      
-> nameOf _ = error "This is impossible! Data.Type.nameOf\n line 35"
+> nameOf x@(FunTy t ts) = Name (show $ pprint x)
       

@@ -1,1 +1,0 @@
-typedef struct T {short x;} T;

@@ -1,0 +1,29 @@
+exists alpha1.
+ typedef D as alpha1, 
+  def foo : (D, int)  in 
+   def d : D in 
+    exists alpha2.
+     exists alpha3.
+      int = alpha2, typeof(d) = alpha3, typeof(*) = (alpha2, alpha3, int)
+ , 
+ exists alpha4.
+  typedef C as alpha4, 
+   def function : (C, int)  in 
+    def c : C in 
+     exists alpha5.
+      exists alpha6.
+       exists alpha7.
+        exists alpha8.
+         exists alpha9.
+          typeof(c) = alpha8, has (alpha8, x : alpha9), alpha6 = alpha9, exists alpha10.
+           exists alpha11.
+            typeof(c) = alpha10, has (alpha10, y : alpha11), alpha7 = alpha11, typeof(+) = (alpha6, alpha7, alpha5), 
+             typedef D as alpha5, def d : alpha5 in 
+              exists alpha12.
+               exists alpha13.
+                typeof(d) = alpha13, typeof(foo) = (alpha13, alpha12), 
+                 typedef A as alpha12, def a : alpha12 in 
+                  typeof(a) = int, 
+                   alpha12 = A, 
+                    alpha5 = D
+ 

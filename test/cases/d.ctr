@@ -1,0 +1,13 @@
+exists alpha1.
+  exists alpha2.
+   exists alpha3.
+    typedef B as alpha2, 
+     typedef C as alpha3, 
+      def f : (B, C, A)  in 
+       def unnamed1 : B in 
+        def unnamed2 : C in 
+         exists alpha4.
+          int = alpha4, 
+           alpha1 = alpha4, def a : alpha4 in 
+            typeof(a) = A, 
+             alpha4 = A
