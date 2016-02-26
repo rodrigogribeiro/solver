@@ -1,0 +1,7 @@
+def f : (int)  in
+ exists alpha1.
+  typedef T as alpha1, def x : alpha1 in
+   exists alpha2.
+    exists alpha3.
+     typeof(x) = alpha2, int = alpha3, typeof(+) = (alpha2, alpha3, int),
+      alpha1 = T

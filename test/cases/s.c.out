@@ -1,1 +1,3 @@
-typedef struct C {short x;short y;} C ;
+typedef int A ;
+typedef struct C {int x;int y;} C ;
+typedef int D ;

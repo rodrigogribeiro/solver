@@ -11,7 +11,7 @@
 > import Data.Type
 > import Data.BuiltIn    
 
-> import Control.Monad
+> import Control.Monad  
 > import Control.Monad.Trans    
 > import Control.Monad.State
 > import Control.Monad.Except    
@@ -23,16 +23,18 @@
 
 
 > solver :: Constraint -> IO (Either String (TyCtx, VarCtx))
-> solver c = runSolverM (solve c) 0
+> solver c = runSolverM (solve c) ((length $ fv c) + 1)
   
 > solve :: Constraint -> SolverM (TyCtx, VarCtx)
 > solve c = do
+>             --liftIO (print $ length (fv c))
 >             (tc0,c') <- stage0 (TyCtx initialTyCtx) c
+>             --liftIO (print $ pprint c')                    
 >             (tcx, vcx, cs, s) <- stage1 tc0
 >                                         (VarCtx initialVarCtx)
 >                                         c'
 >             (tcx', vcx') <- stage2 tcx vcx cs s
->             --liftIO (print $ pprint $ tcx)                
+>             --liftIO (print $ pprint $ tcx')                
 >             let (a,b) = removeBuiltIn tcx' vcx'
 >             --liftIO (print $ pprint s)
 >             --liftIO (print $ pprint a)                                
@@ -47,16 +49,31 @@
 >                           isVar = ((==) "alpha") . (take 5) . show . pprint      
 
 
+> defineTypeDef :: Ty -> Ty -> TyCtx -> SolverM (TyCtx, Constraint)
+> defineTypeDef (Pointer t) (Pointer t') tctx
+>     = do
+>         (tcx,c) <- defineTypeDef t t' tctx
+>         return (tcx, (t :=: t') :&: c)
+> defineTypeDef t@(Pointer l) t'@(TyVar v) tctx
+>     = do
+>          v' <- fresh
+>          --liftIO (print $ pprint t <+> pprint t')                
+>          (tcx, c) <- defineTypeDef l v' tctx
+>          return (tcx, (t' :=: (Pointer v')) :&: c)             
+> defineTypeDef t t' tctx
+>     = return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx), Truth)   
+
 > stage0 :: TyCtx -> Constraint -> SolverM (TyCtx, Constraint)
 > stage0 tctx (t :=: t')
->        = return (tctx, (replaceTy tctx t) :=:
->                        (replaceTy tctx t'))
+>        = do
+>            return (tctx, (replaceTy tctx t) :=:
+>                          (replaceTy tctx t'))
 > stage0 tctx (n :<-: t)
 >        = return (tctx, n :<-: (replaceTy tctx t))
 > stage0 tctx (Has n (Field n' t))
 >        = return (tctx, Has n (Field n' (replaceTy tctx t)))
 > stage0 tctx (TypeDef t t')
->        = return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx), Truth)
+>        = defineTypeDef t t' tctx
 > stage0 tctx (c :&: c')
 >        = do
 >            (tcx1, c1) <- stage0 tctx c
@@ -91,6 +108,7 @@
 >                                                   , Subst)
 > stage1 tctx vctx (t :=: t')
 >       = do
+>           --liftIO (print $ pprint (t :=: t'))
 >           s <- unify t t'
 >           return (tctx, vctx, [], s)
 > stage1 tctx vctx (n :<-: t)
@@ -106,15 +124,7 @@
 > stage1 tctx vctx c@(Has _ _)
 >       = return (tctx, vctx, [c], nullSubst)
 > stage1 tctx vctx (TypeDef t t')
->       = case Map.lookup (nameOf t) (tyctx tctx) of
->             Just tx ->
->                 do
->                   s <- unify t' tx
->                   return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx), vctx, [], s)
->             Nothing -> return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx)
->                               , vctx
->                               , []
->                               , nullSubst)
+>       = undefined
 > stage1 tctx vctx (c :&: c')
 >       = do
 >           --liftIO (print $ pprint c)
@@ -144,7 +154,7 @@
 >              go (Has n t) ac = maybe (Map.insert n [t] ac)
 >                                      (\ts -> Map.insert n (t:ts) ac)
 >                                      (Map.lookup n ac)
->              tctx'' = TyCtx $ Map.foldrWithKey step Map.empty (tyctx tctx')
+>              tctx'' = TyCtx $ Map.foldrWithKey step (tyctx tctx') (tyctx tctx')
 >              step n t ac = maybe ac
 >                                  (\fs -> Map.insert n (Struct fs n) ac)
 >                                  (Map.lookup t fieldMap)

@@ -69,7 +69,7 @@ A type class for the unification algorithm
 >     unify (TyVar v) t = varBind v t
 >     unify t (TyVar v) = varBind v t
 >     unify (TyCon c) (TyCon c')
->           | convertible(TyCon c) (TyCon c') = return nullSubst
+>           | convertible (TyCon c) (TyCon c') = return nullSubst
 >           | otherwise = differentTypeConstructorsError c c'
 >     unify (Pointer t) (Pointer t')
 >         = unify t t'
@@ -81,7 +81,10 @@ A type class for the unification algorithm
 >     unify (Struct fs n) (Struct fs' n')
 >         | n == n' = unify (sort fs) (sort fs')
 >         | otherwise = differentTypeConstructorsError n n'            
-
+>     unify t t'
+>         | convertible t t' = return nullSubst  
+>         | otherwise = differentTypeConstructorsError (Name $ show $ pprint t) (Name $ show $ pprint t')
+          
 > instance Apply Field where
 >     apply s (Field n t) = Field n (apply s t)
 
@@ -102,6 +105,17 @@ A type class for the unification algorithm
 >     apply s (TypeDef t t') = TypeDef (apply s t) (apply s t')                       
 >     apply s Truth = Truth                       
 
+> instance Unifiable Constraint where
+>     unify _ _ = error "Impossible! Unify Constraint"
+>     fv (t :=: t') = fv t `union` fv t'
+>     fv ( _ :<-: t) = fv t
+>     fv (Has t (Field _ t')) = fv t `union` fv t'
+>     fv (Def _ t c) = fv t `union` fv c
+>     fv (c :&: c') = fv c `union` fv c'
+>     fv (Exists n c) = n : fv c
+>     fv (TypeDef t t') = fv t `union` fv t'
+>     fv t = []
+      
 > wrongArgumentNumberError :: SolverM a
 > wrongArgumentNumberError = throwError "Error! Wrong argument number."                            
 

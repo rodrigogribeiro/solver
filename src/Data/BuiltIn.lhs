@@ -27,11 +27,11 @@ Initial typing definition
 > initialVarCtx
 >     = Map.fromList types
 >       where
->          types = [ (Name "+", (FunTy short [short, short], True))
->                  , (Name "-", (FunTy short [short, short], True))
->                  , (Name "*", (FunTy short [short, short], True))
->                  , (Name "/", (FunTy short [short, short], True))
->                  , (Name "%", (FunTy short [short, short], True))
+>          types = [ (Name "+", (FunTy int [int, int], True))
+>                  , (Name "-", (FunTy int [int, int], True))
+>                  , (Name "*", (FunTy int [int, int], True))
+>                  , (Name "/", (FunTy int [int, int], True))
+>                  , (Name "%", (FunTy int [int, int], True))
 >                  , (Name "<", (FunTy bool [short, short], True))
 >                  , (Name ">", (FunTy bool [short, short], True))
 >                  , (Name "<=", (FunTy bool [short, short], True))

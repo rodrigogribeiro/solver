@@ -29,7 +29,7 @@ Utilities for pretty printing
 >                                                        (params ++ [ret])))
 >     pprint (Struct fs n) = text "struct" <+> pprint n <+>
 >                            braces (hcat $ (map pprint fs))
->     pprint (Pointer t) = pprint t <> char '*'                              
+>     pprint (Pointer t) = char '*' <> pprint t                               
 
                                   
 > instance Pretty Constraint where
@@ -56,6 +56,6 @@ Name of a type
 > nameOf (TyCon n) = n
 > nameOf (TyVar n) = n
 > nameOf (Struct _ n) = n
-> nameOf (Pointer t) = Name ("*" ++ (show $ pprint t))                      
+> nameOf (Pointer t) = Name ((show $ pprint t))                      
 > nameOf x@(FunTy t ts) = Name (show $ pprint x)
       

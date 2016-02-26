@@ -24,7 +24,9 @@ tests = testGroup "Unit tests"
                   [
                     doTest "a.c"
                   , doTest "c.c"
-                  , doTest "s.c"  
+                  , doTest "s.c"
+                  , doTest "e.c"
+                  , doTest "f.c"  
                   ]
 
 
