@@ -61,7 +61,12 @@
 >          (tcx, c) <- defineTypeDef l v' tctx
 >          return (tcx, (t' :=: (Pointer v')) :&: c)             
 > defineTypeDef t t' tctx
->     = return (TyCtx $ Map.insert (nameOf t) t' (tyctx tctx), Truth)   
+>     = do
+>          let
+>              tctx' = TyCtx $ maybe (Map.insert (nameOf t) t' (tyctx tctx))
+>                                    (const (tyctx tctx))
+>                                    (Map.lookup (nameOf t) (tyctx tctx))
+>          return (tctx' , Truth)   
 
 > stage0 :: TyCtx -> Constraint -> SolverM (TyCtx, Constraint)
 > stage0 tctx (t :=: t')

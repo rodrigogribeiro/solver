@@ -49,7 +49,7 @@ Initial typing definition
 basic types
 
 > bool :: Ty
-> bool = TyCon (Name "_Bool")
+> bool = TyCon (Name "bool")
       
 > void :: Ty
 > void = TyCon (Name "void")        

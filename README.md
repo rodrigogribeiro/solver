@@ -35,3 +35,22 @@ where INFILENAME is a file containing the constraints and OUTFILENAME
 is the file that will hold the results of inference.
 
 
+Running the test suite
+------------------
+
+Tests are under folder ** test ** and the main function to run all
+tests are in **Spec.hs** file. Test cases are all in /test/cases
+folder and all are composed by two files
+
+    - A .ctr file that contains the constraint 
+    - A .out file that contains the expected answer
+
+To add a new example just edit the **tests** function that contains
+all test cases in the suite.
+
+To run all tests, just use the command
+
+     stack test
+
+that stack tool will run all tests and output its results.
+

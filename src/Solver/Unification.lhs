@@ -47,9 +47,9 @@ A type class for the unification algorithm
 
 
 > varBind :: Name -> Ty -> SolverM Subst
-> varBind n t
->        | n `elem` fv t = occursCheckError n t
->        | otherwise = return $ Subst (Map.singleton n t)
+> varBind n t = return $ Subst (Map.singleton n t)
+>        -- | n `elem` fv t = occursCheckError n t
+>       -- | otherwise = return $ Subst (Map.singleton n t)
 
 > instance Apply Ty where
 >     apply s t@(TyVar v) = maybe t id (Map.lookup v (subs s))

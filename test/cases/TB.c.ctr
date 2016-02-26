@@ -1,0 +1,8 @@
+def f : (void)  in
+ exists alpha1.
+  typedef int as alpha1, def a : alpha1 in
+   exists alpha2.
+    typeof(a) = alpha2,
+     typedef T as alpha2, def b : alpha2 in
+      alpha2 = T,
+       alpha1 = int

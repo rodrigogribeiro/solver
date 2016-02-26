@@ -11,6 +11,8 @@ Specification of type conversion rules
 >                       , and [t == short, t' == int]
 >                       , and [t == int , t' == short]
 >                       , and [t == int , t' == Pointer int]
->                       , and [t == Pointer int, t' == int]  
+>                       , and [t == Pointer int, t' == int]
+>                       , and [t == bool, t' == int]
+>                       , and [t == int, t' == bool]  
 >                       ]                              
                             
