@@ -29,7 +29,7 @@ Utilities for pretty printing
 >                                                        (params ++ [ret])))
 >     pprint (Struct fs n) = text "struct" <+> pprint n <+>
 >                            braces (hcat $ (map pprint fs))
->     pprint (Pointer t) = char '*' <> pprint t                               
+>     pprint (Pointer t) = pprint t <> char '*'
 
                                   
 > instance Pretty Constraint where

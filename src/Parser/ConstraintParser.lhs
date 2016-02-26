@@ -89,9 +89,9 @@ Constraint parser
 Type parser
 
 > typeParser :: Parser Ty
-> typeParser = option id (f <$> many1 (string "*")) <*> typeParser'
+> typeParser = f <$> typeParser' <*> (many starParser) --option id (f <$> many1 (string "*")) <*> typeParser'
 >              where
->                f = foldr (const ((.) Pointer)) id
+>                f t ts = foldr (\ _ ac -> Pointer ac) t ts
      
 > typeParser' :: Parser Ty
 > typeParser' = choice [ tyVarParser
@@ -135,7 +135,7 @@ Lexer definition
 >                        Tk.operator constrLexer)
 
 > reserved :: String -> Parser ()
-> reserved = Tk.reserved constrLexer           
+> reserved = Tk.reserved constrLexer
 
 > reservedOp :: String -> Parser ()
 > reservedOp = Tk.reservedOp constrLexer
@@ -153,7 +153,7 @@ Lexer definition
 > semi = () <$ Tk.semi constrLexer
 
 > starParser :: Parser ()
-> starParser = () <$ Tk.symbol constrLexer "*"
+> starParser = () <$ (Tk.lexeme constrLexer $ Tk.symbol constrLexer "*")
 
 > colon :: Parser ()
 > colon = () <$ Tk.colon constrLexer
