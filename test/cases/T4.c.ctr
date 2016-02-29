@@ -1,0 +1,33 @@
+exists alpha1.
+ exists alpha2.
+  typedef double as alpha1, 
+   typedef int as alpha2, 
+    def do_math : (double, int, double)  in 
+     def arg1 : double in 
+      def arg2 : int in 
+       exists alpha3.
+        exists alpha4.
+         typeof(arg2) = alpha3, typeof(arg1) = alpha4, typeof(/) = (alpha3, alpha4, double)
+ , 
+ exists alpha5.
+  typedef T as alpha5, 
+   def call_a_func : (T, int)  in 
+    def call_this : T in 
+     exists alpha6.
+      exists alpha7.
+       float = alpha7, 
+        exists alpha8.
+         int = alpha8, typeof(call_this) = (alpha7, alpha8, alpha6), 
+          typedef double as alpha6, def output : alpha6 in 
+           typeof(output) = int, 
+            alpha6 = double
+ , 
+ def main : (int)  in 
+  exists alpha9.
+   exists alpha10.
+    exists alpha11.
+     exists alpha12.
+      typeof(do_math) = alpha12, alpha11 = alpha12*, alpha10 = alpha11, typeof(call_a_func) = (alpha10, alpha9), 
+       typedef double as alpha9, def final_result : alpha9 in 
+        alpha9 = double
+ 

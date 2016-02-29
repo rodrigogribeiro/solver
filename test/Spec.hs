@@ -28,7 +28,9 @@ tests = testGroup "Unit tests"
                   , doTest "e.c"
                   , doTest "f.c"
                   , doTest "TA.c"
-                  , doTest "TB.c"  
+                  , doTest "TB.c"
+                  , doTest "T2.c"
+                  , doTest "T3.c"  
                   ]
 
 

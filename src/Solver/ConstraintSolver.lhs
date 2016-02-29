@@ -34,13 +34,22 @@
 >                                         (VarCtx initialVarCtx)
 >                                         c'
 >             (tcx', vcx') <- stage2 tcx vcx cs s
->             --liftIO (print $ pprint $ tcx')                
+>             --liftIO (print $ pprint $ tcx)                
 >             let (a,b) = removeBuiltIn tcx' vcx'
->             --liftIO (print $ pprint s)
->             --liftIO (print $ pprint a)                                
->             return (a,b)            
+>                 (s',a') = fixRecursiveTypes tcx a       
+>             --liftIO (print $ pprint s')
+>             --liftIO (print $ pprint a')                                
+>             return (a',b)            
 
 
+> fixRecursiveTypes :: TyCtx -> TyCtx -> (Subst, TyCtx)
+> fixRecursiveTypes otcx ntcx
+>     = (s, TyCtx $ Map.map (apply s) ctx)
+>       where
+>          ctx = (tyctx ntcx) Map.\\ initialTyCtx
+>          s = Subst $ Map.foldrWithKey step Map.empty ctx 
+>          step k v ac = if not $ null $ fv v then foldr (\x ac -> Map.insert x (TyCon k) ac) Map.empty (fv v) else ac     
+              
 > removeBuiltIn :: TyCtx -> VarCtx -> (TyCtx, VarCtx)
 > removeBuiltIn tcx vcx = (TyCtx t', VarCtx v')
 >                         where
