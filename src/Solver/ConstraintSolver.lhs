@@ -14,7 +14,7 @@
 > import Control.Monad  
 > import Control.Monad.Trans    
 > import Control.Monad.State
-> import Control.Monad.Except    
+> import Control.Monad.Except    -- malloc + e-mail.
 
 > import Solver.SolverMonad
 > import Solver.Unification    
@@ -48,7 +48,9 @@
 >       where
 >          ctx = (tyctx ntcx) Map.\\ initialTyCtx
 >          s = Subst $ Map.foldrWithKey step Map.empty ctx 
->          step k v ac = if not $ null $ fv v then foldr (\x ac -> Map.insert x (TyCon k) ac) Map.empty (fv v) else ac     
+>          step k v ac = if not $ null $ fv v then
+>                            foldr (\x ac -> Map.insert x (TyCon k) ac) Map.empty (fv v)
+>                          else ac     
               
 > removeBuiltIn :: TyCtx -> VarCtx -> (TyCtx, VarCtx)
 > removeBuiltIn tcx vcx = (TyCtx t', VarCtx v')

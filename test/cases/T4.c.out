@@ -1,1 +1,2 @@
-typedef (float,int,int) T ;
+typedef (float,int,float) T ;
+ 
