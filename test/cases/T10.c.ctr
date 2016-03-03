@@ -1,0 +1,21 @@
+def main : (int)  in 
+ exists alpha1.
+  typedef T as alpha1, def x : alpha1 in 
+   exists alpha2.
+    int = alpha2, 
+     typedef int as alpha2, def c : alpha2 in 
+      exists alpha3.
+       exists alpha4.
+        exists alpha5.
+         exists alpha6.
+          exists alpha7.
+           typeof(x) = alpha5, alpha5 = alpha6*, has (alpha6, c : alpha7), alpha4 = alpha7, typeof(c) = alpha4, 
+            exists alpha8.
+             exists alpha9.
+              exists alpha10.
+               exists alpha11.
+                exists alpha12.
+                 typeof(x) = alpha10, alpha10 = alpha11*, has (alpha11, i : alpha12), alpha9 = alpha12, int = alpha9, 
+                  alpha2 = int, 
+                   alpha1 = T
+ 

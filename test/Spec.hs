@@ -32,6 +32,8 @@ tests = testGroup "Unit tests"
                   , doTest "T2.c"
                   , doTest "T3.c"
                   , doTest "T4.c"  
+                  , doTest "T10.c"
+                  , doTest "T11.c"
                   ]
 
 
