@@ -23,7 +23,7 @@
 
 
 > solver :: Constraint -> IO (Either String (TyCtx, VarCtx))
-> solver c = runSolverM (solve c) ((length $ fv c) + 1)
+> solver c = runSolverM (solve c) 1 --((length $ fv c) + 1)
   
 > solve :: Constraint -> SolverM (TyCtx, VarCtx)
 > solve c = do
@@ -34,11 +34,14 @@
 >                                         (VarCtx initialVarCtx)
 >                                         c'
 >             (tcx', vcx') <- stage2 tcx vcx cs s
->             --liftIO (print $ pprint $ tcx)                
+>             liftIO (print $ pprint $ tcx')
+>             --liftIO (print $ pprint s)
+>             --liftIO (mapM_ print $ map pprint cs)
+>             --liftIO (print $ pprint vcx')       
 >             let (a,b) = removeBuiltIn tcx' vcx'
 >                 (s',a') = fixRecursiveTypes tcx a       
 >             --liftIO (print $ pprint s')
->             --liftIO (print $ pprint a')                                
+>             --liftIO (print $ pprint a)                                
 >             return (a',b)            
 
 
@@ -96,7 +99,9 @@
 >            (tcx2, c1') <- stage0 tcx1 c'
 >            return (tcx2, c1 :&: c1')
 > stage0 tctx (Exists n c)
->        = stage0 tctx c
+>        = do
+>            v <- fresh
+>            stage0 tctx (apply (n +-> v) c)
 > stage0 tctx (Def n t c)
 >        = do
 >           (tcx, c')  <- stage0 tctx c
@@ -126,12 +131,15 @@
 >       = do
 >           --liftIO (print $ pprint (t :=: t'))
 >           s <- unify t t'
+>           --liftIO (print $ pprint ((apply s t) :=: (apply s t')))     
 >           return (tctx, vctx, [], s)
 > stage1 tctx vctx (n :<-: t)
 >       = case Map.lookup n (varctx vctx) of
 >             Just (t',_) ->
 >                 do
+>                   --liftIO (print $ pprint (t :=: t'))
 >                   s <- unify t t'
+>                   --liftIO (print $ pprint ((apply s t) :=: (apply s t')))          
 >                   return (tctx, vctx,[], s)
 >             Nothing -> return (tctx
 >                               , VarCtx $ Map.insert n (t, False) (varctx vctx)
@@ -149,10 +157,10 @@
 >           (t2,v2,c2,s2) <- stage1 t1 v1 (apply s1 c')                  
 >           return ( TyCtx (Map.union (tyctx t1) (tyctx t2))
 >                  , VarCtx (Map.union (varctx v1) (varctx v2))
->                  , c1 ++ c2
+>                  , apply (s2 @@ s1) (c1 ++ c2)
 >                  , s2 @@ s1)  
 > stage1 tctx vctx (Exists n c)
->       = stage1 tctx vctx c
+>       = undefined --stage1 tctx vctx c
 > stage1 tctx vctx (Def n t c)
 >       = stage1 tctx (VarCtx $ Map.insert n (t,True) (varctx vctx)) c
 > stage1 tctx vctx Truth
@@ -174,6 +182,8 @@
 >              step n t ac = maybe ac
 >                                  (\fs -> Map.insert n (Struct fs n) ac)
 >                                  (Map.lookup t fieldMap)
->          --liftIO (mapM_ (print . pprint) cs')
+>          --liftIO (mapM_ (print . pprint) (apply s cs))
+>          liftIO (print $ pprint s)
+>          liftIO (print fieldMap)                        
 >          --liftIO (print $ pprint tctx'')       
 >          return (tctx'', vctx')

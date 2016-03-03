@@ -57,6 +57,9 @@ Substitution definition
 > instance Pretty Subst where
 >     pprint = printer "+->" . subs
 
+> (+->) :: Name -> Ty -> Subst
+> n +-> t = Subst (Map.singleton n t)
+      
 Fresh variable generation
 -------------------------
 

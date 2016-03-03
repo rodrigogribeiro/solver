@@ -47,7 +47,7 @@ A type class for the unification algorithm
 
 
 > varBind :: Name -> Ty -> SolverM Subst
-> varBind n t = return $ Subst (Map.singleton n t)
+> varBind n t = return (n +-> t)
 >        -- | n `elem` fv t = occursCheckError n t
 >       -- | otherwise = return $ Subst (Map.singleton n t)
 

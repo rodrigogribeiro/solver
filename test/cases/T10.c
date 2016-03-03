@@ -3,4 +3,5 @@ int main() {
   char c = 'a';
   x->c = c;
   x->i = 1;
+  return 0;
 }
