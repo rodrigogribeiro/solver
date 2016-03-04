@@ -163,9 +163,12 @@
 >           -- apply substitution to types                        
 >           tcx' = TyCtx $ Map.map (apply (s' @@ s)) (tyctx tcx)
 >           -- combine structs with types
->           replace n (Struct fs v) = apply (v +-> (TyCon n)) $ Struct fs n
+>           replace n (Struct fs v)
+>               | isVar v = apply (v +-> (TyCon n)) $ Struct fs n
+>               | otherwise = Struct fs v            
 >           replace n (Pointer t) = Pointer (replace n t)                          
 >           replace n t = t
+>           isVar :: Pretty a => a -> Bool              
 >           isVar = (== "alpha") . take 5 . show . pprint                    
 >           tcx'' = TyCtx $ Map.filter (not . isVar) $ Map.mapWithKey replace (tyctx tcx')
 >         --liftIO (print fieldMap)
