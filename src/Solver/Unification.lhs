@@ -80,10 +80,11 @@ A type class for the unification algorithm
 >            return (s' @@ s)      
 >     unify (Struct fs n) (Struct fs' n')
 >         | n == n' = unify (sort fs) (sort fs')
->         | otherwise = differentTypeConstructorsError n n'            
+>         | otherwise = differentTypeConstructorsError n n'
 >     unify t t'
 >         | convertible t t' = return nullSubst  
->         | otherwise = differentTypeConstructorsError (Name $ show $ pprint t) (Name $ show $ pprint t')
+>         | otherwise = differentTypeConstructorsError (Name $ show $ pprint t)
+>                                                      (Name $ show $ pprint t')
           
 > instance Apply Field where
 >     apply s (Field n t) = Field n (apply s t)

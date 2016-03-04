@@ -1,1 +1,1 @@
-typedef struct T {int i;T* next;} T ;
+typedef (float,int,int) T ;

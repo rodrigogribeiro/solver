@@ -36,11 +36,12 @@
 >                 unifyList [] = return nullSubst
 >                 unifyList ((t :=: t') : ts)
 >                           = do
->                              s <- unify t t'
+>                              --liftIO (print $ pprint (t :=: t'))
+>                              s <- unify t t'     
 >                              s' <- unifyList (apply s ts)
 >                              return (s' @@ s)
+>             --liftIO (mapM_ (print . pprint) eqs)                                          
 >             s <- unifyList eqs
->             --liftIO (mapM_ (print . pprint) eqs)     
 >             -- step 4: build record structures and remove built-ins
 >             tcx1 <- stage4 tc0 fds s
 >             let
