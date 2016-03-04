@@ -1,2 +1,2 @@
-typedef (float,int,float) T ;
+typedef (double,int,double)* T ;
  

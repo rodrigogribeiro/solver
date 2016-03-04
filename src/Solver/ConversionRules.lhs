@@ -10,8 +10,8 @@ Specification of type conversion rules
 > convertible t t' = or [ t == t'
 >                       , and [t == short, t' == int]
 >                       , and [t == int , t' == short]
->                       , and [t == int , t' == Pointer int]
->                       , and [t == Pointer int, t' == int]
+>                       , and [t == int , isPointer t']
+>                       , and [isPointer t, t' == int]
 >                       , and [t == bool, t' == int]
 >                       , and [t == int, t' == bool]
 >                       , and [t == int, t' == double]
@@ -22,3 +22,6 @@ Specification of type conversion rules
 >                       , and [t == float, t' == double]  
 >                       ]                              
                             
+> isPointer :: Ty -> Bool
+> isPointer (Pointer _) = True
+> isPointer _ = False                        

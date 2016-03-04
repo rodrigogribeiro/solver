@@ -30,7 +30,7 @@ Initial typing definition
 >          types = [ (Name "+", (FunTy int [int, int], True))
 >                  , (Name "-", (FunTy int [int, int], True))
 >                  , (Name "*", (FunTy int [int, int], True))
->                  , (Name "/", (FunTy float [float, float], True))
+>                  , (Name "/", (FunTy double [double, double], True))
 >                  , (Name "%", (FunTy int [int, int], True))
 >                  , (Name "<", (FunTy bool [short, short], True))
 >                  , (Name ">", (FunTy bool [short, short], True))
