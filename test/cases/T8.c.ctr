@@ -1,0 +1,11 @@
+typedef A as struct T {int x; int y; },
+ def f : (void)  in
+  exists alpha1.
+   typedef A as alpha1, def a : alpha1 in
+    exists alpha2.
+     exists alpha3.
+      exists alpha4.
+       typeof(a) = alpha3, has (alpha3, x : alpha4), alpha2 = alpha4,
+        typedef T as alpha2, def i : alpha2 in
+         alpha2 = T,
+          alpha1 = A
