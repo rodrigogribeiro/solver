@@ -45,7 +45,6 @@
 >             -- step 4: build record structures and remove built-ins
 >             tcx1 <- stage4 tc0 fds s
 >             let
->                 --isVar = (== "alpha") . take 5 . show . pprint
 >                 tcx' = TyCtx $ (tyctx tcx1) Map.\\ initialTyCtx
 >                 vcx' = VarCtx $ Map.filter (not . snd) $ (varctx vcx) Map.\\ initialVarCtx
 >             --liftIO (print $ pprint s)

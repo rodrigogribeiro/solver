@@ -43,7 +43,7 @@ Initial typing definition
 >                  , (Name "^", (FunTy short [short, short], True))
 >                  , (Name "||", (FunTy bool [bool, bool], True))
 >                  , (Name "&&", (FunTy bool [bool, bool], True))
->                  , (Name "sizeof", (FunTy int [TyVar (Name "a")], True))]
+>                  , (Name "size_of", (FunTy int [TyVar (Name "a")], True))]
 >           
                     
 basic types
