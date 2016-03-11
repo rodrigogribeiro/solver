@@ -1,0 +1,19 @@
+exists alpha1.
+ typedef List as alpha1, 
+  exists alpha2.
+   typedef List as alpha2, 
+    def new_node : (List, List)  in 
+     def anchor : List in 
+      exists alpha3.
+       exists alpha4.
+        typedef List as alpha4, exists alpha5.
+         int = alpha5, typeof(malloc) = (alpha5, alpha3), alpha3 = List, 
+          typedef List as alpha3, def node : alpha3 in 
+           exists alpha6.
+            exists alpha7.
+             exists alpha8.
+              exists alpha9.
+               exists alpha10.
+                typeof(node) = alpha8, alpha8 = alpha9*, has (alpha9, next : alpha10), alpha7 = alpha10, typeof(anchor) = alpha7, 
+                 typeof(node) = List, 
+                  alpha3 = List

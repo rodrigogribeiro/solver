@@ -1,0 +1,1 @@
+typedef struct List {struct List* next;}* List ;
