@@ -35,6 +35,7 @@ tests = testGroup "Unit tests"
                   , doTest "T8.c"  
                   , doTest "T10.c"
                   , doTest "T11.c"
+                  , doTest "paperExample.c"  
                   ]
 
 
@@ -46,12 +47,12 @@ doTest s
         case parser ctr of
           Left err -> error err
           Right c  -> case parse resParser "" res of
-                         Left err' -> error $ show err'
+                         Left err' -> error $ "Error on answer parser:\n" ++ show err'
                          Right (tx,vx) ->
                              do 
                                r <- solver c
                                case r of
-                                  Left err'' -> error $ show err''
+                                  Left err'' -> error $ "Error on constraint parser:\n" ++ show err''
                                   Right (tx', vx') ->
                                       unless (tx == tx' && vx == vx')
                                              (error $ printResults tx tx' vx vx')

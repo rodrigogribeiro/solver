@@ -108,7 +108,9 @@ Type parser
 >                  f x y = Name (x ++ y)              
 
 > tyConParser :: Parser Ty
-> tyConParser = (TyCon . Name) <$> (Tk.identifier constrLexer)
+> tyConParser = ((TyCon . Name) <$> (Tk.identifier constrLexer)) -- <|>
+>           --    (reserved "struct" *> typeParser)
+>               
 
 > tyFunParser :: Parser Ty
 > tyFunParser = f <$> parens (typeParser `sepBy1` comma)
