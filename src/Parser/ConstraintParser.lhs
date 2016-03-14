@@ -108,9 +108,7 @@ Type parser
 >                  f x y = Name (x ++ y)              
 
 > tyConParser :: Parser Ty
-> tyConParser = ((TyCon . Name) <$> (Tk.identifier constrLexer)) -- <|>
->           --    (reserved "struct" *> typeParser)
->               
+> tyConParser = ((TyCon . Name) <$> (Tk.identifier constrLexer))
 
 > tyFunParser :: Parser Ty
 > tyFunParser = f <$> parens (typeParser `sepBy1` comma)
@@ -119,10 +117,12 @@ Type parser
 
 > structParser :: Parser Ty
 > structParser = f <$> reserved "struct" <*>
->                      nameParser  <*>
->                      braces (fieldParser `endBy1` semi)
+>                      nameParser  <*> 
+>                      ((Left <$> braces (fieldParser `endBy1` semi)) <|>
+>                       (Right <$> many starParser))                                              
 >                where
->                  f _ n fs = Struct fs n
+>                  f _ n (Left fs) = Struct fs n
+>                  f _ n (Right ts) = foldr (\ _ ac -> Pointer ac) (TyCon n) ts
 
 > fieldParser :: Parser Field
 > fieldParser = flip Field <$> typeParser <*> nameParser
