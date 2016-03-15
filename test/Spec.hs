@@ -36,6 +36,7 @@ tests = testGroup "Unit tests"
                   , doTest "T10.c"
                   , doTest "T11.c"
                   , doTest "paperExample.c"  
+                  , doTest "testPrintf.c"
                   ]
 
 
