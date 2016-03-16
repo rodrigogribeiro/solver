@@ -43,7 +43,7 @@ Initial typing definition
 >                  , (Name "^", (FunTy short [short, short], True))
 >                  , (Name "||", (FunTy bool [bool, bool], True))
 >                  , (Name "&&", (FunTy bool [bool, bool], True))
->                  , (Name "size_of", (FunTy int [TyVar (Name "alpha0")], True))
+>                  , (Name "sizeof", (FunTy int [TyVar (Name "alpha0")], True))
 >                  , (Name "malloc", (FunTy (TyVar (Name "alpha0")) [int], True))]
 >           
                     

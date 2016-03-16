@@ -45,14 +45,14 @@ doTest s
         ctr <- readFile (cases ++ s ++ ".ctr")
         res <- readFile (cases ++ s ++ ".out")
         case parser ctr of
-          Left err -> error err
+          Left err -> error $ "Error on constraint parser:\n" ++ err
           Right c  -> case parse resParser "" res of
                          Left err' -> error $ "Error on answer parser:\n" ++ show err'
                          Right (tx,vx) ->
                              do 
                                r <- solver c
                                case r of
-                                  Left err'' -> error $ "Error on constraint parser:\n" ++ show err''
+                                  Left err'' -> error $ "Error on constraint solver:\n" ++ show err''
                                   Right (tx', vx') ->
                                       unless (tx == tx' && vx == vx')
                                              (error $ printResults tx tx' vx vx')
