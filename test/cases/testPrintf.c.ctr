@@ -1,0 +1,45 @@
+exists alpha1.
+ typedef real as alpha1, 
+  exists alpha2.
+   exists alpha3.
+    typedef real as alpha2, 
+     typedef inteiro as alpha3, 
+      def vezes : (real, inteiro, real)  in 
+       def r : real in 
+        def x : inteiro in 
+         exists alpha4.
+          exists alpha5.
+           typeof(r) = alpha4, typeof(x) = alpha5, typeof(*) = (alpha4, alpha5, real)
+ , 
+ def main : (int)  in 
+  exists alpha6.
+   int = alpha6, 
+    typedef inteiro as alpha6, def x : alpha6 in 
+     exists alpha7.
+      float = alpha7, 
+       typedef real as alpha7, def y : alpha7 in 
+        exists alpha8.
+         exists alpha9.
+          typeof(y) = alpha9, 
+           exists alpha10.
+            typeof(x) = alpha10, typeof(vezes) = (alpha9, alpha10, alpha8), 
+             typedef real as alpha8, def z : alpha8 in 
+              exists alpha11.
+               exists alpha12.
+                char* = alpha12, 
+                 exists alpha13.
+                  typeof(x) = alpha13, 
+                   exists alpha14.
+                    typeof(y) = alpha14, typeof(printf) = (alpha12, alpha13, alpha14, alpha11), 
+                     exists alpha15.
+                      exists alpha16.
+                       char* = alpha16, typeof(printf) = (alpha16, alpha15), 
+                        exists alpha17.
+                         exists alpha18.
+                          char* = alpha18, 
+                           exists alpha19.
+                            typeof(z) = alpha19, typeof(printf) = (alpha18, alpha19, alpha17), 
+                             int = int, 
+                              alpha8 = real, 
+                               alpha7 = real, 
+                                alpha6 = inteiro
