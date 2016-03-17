@@ -1,0 +1,59 @@
+exists alpha1.
+ exists alpha2.
+  exists alpha3.
+   typedef u8* as alpha1, 
+    typedef u8* as alpha2, 
+     typedef int as alpha3, 
+      def vn : (u8*, u8*, int, int)  in 
+       def x : u8* in 
+        def y : u8* in 
+         def n : int in 
+          exists alpha4.
+           typedef u32 as alpha4, def i : alpha4 in 
+            exists alpha5.
+             int = alpha5, 
+              typedef u32 as alpha5, def d : alpha5 in 
+               exists alpha6.
+                exists alpha7.
+                 typeof(i) = alpha7, int = alpha7, 
+                  exists alpha8.
+                   exists alpha9.
+                    typeof(i) = alpha8, typeof(n) = alpha9, typeof(<) = (alpha8, alpha9, bool), 
+                     typeof(i) = int, 
+                      exists alpha10.
+                       exists alpha11.
+                        typeof(d) = alpha11, exists alpha12.
+                         exists alpha13.
+                          exists alpha14.
+                           exists alpha15.
+                            exists alpha16.
+                             typeof(x) = alpha14, typeof(i) = alpha15, alpha14 = alpha16*, alpha12 = alpha16, alpha15 = int, exists alpha17.
+                              exists alpha18.
+                               exists alpha19.
+                                typeof(y) = alpha17, typeof(i) = alpha18, alpha17 = alpha19*, alpha13 = alpha19, alpha18 = int, typeof(^) = (alpha12, alpha13, alpha11), 
+                                 exists alpha20.
+                                  exists alpha21.
+                                   exists alpha22.
+                                    exists alpha23.
+                                     int = alpha22, exists alpha24.
+                                      exists alpha25.
+                                       exists alpha26.
+                                        exists alpha27.
+                                         typeof(d) = alpha26, int = alpha27, typeof(-) = (alpha26, alpha27, alpha24), int = alpha25, typeof(>>) = (alpha24, alpha25, alpha23), typeof(&) = (alpha22, alpha23, alpha20), int = alpha21, typeof(-) = (alpha20, alpha21, int), 
+                                          alpha5 = u32, 
+                                           alpha4 = u32
+ , 
+ exists alpha28.
+  exists alpha29.
+   typedef u8* as alpha28, 
+    typedef u8* as alpha29, 
+     def crypto_verify_16 : (u8*, u8*, int)  in 
+      def x : u8* in 
+       def y : u8* in 
+        exists alpha30.
+         typeof(x) = alpha30, 
+          exists alpha31.
+           typeof(y) = alpha31, 
+            exists alpha32.
+             int = alpha32, typeof(vn) = (alpha30, alpha31, alpha32, int)
+ 
