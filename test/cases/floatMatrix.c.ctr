@@ -1,0 +1,16 @@
+exists alpha1.
+ typedef float** as alpha1, 
+  def agc_max : (float**, void)  in 
+   def mfc : float** in 
+    exists alpha2.
+     typedef float32 as alpha2, def maxc0 : alpha2 in 
+      exists alpha3.
+       exists alpha4.
+        typeof(maxc0) = alpha4, exists alpha5.
+         exists alpha6.
+          exists alpha7.
+           exists alpha8.
+            exists alpha9.
+             exists alpha10.
+              typeof(mfc) = alpha8, int = alpha9, alpha8 = alpha10*, alpha5 = alpha10, alpha9 = int, int = alpha6, alpha5 = alpha7*, alpha4 = alpha7, alpha6 = int, 
+               alpha2 = float32
