@@ -38,6 +38,7 @@ tests = testGroup "Unit tests"
                   , doTest "paperExample.c"  
                   , doTest "testPrintf.c"
                   , doTest "floatMatrix.c"  
+                  , doTest "paperExampleTweetnacl.c"
                   ]
 
 
