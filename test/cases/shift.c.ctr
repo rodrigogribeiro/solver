@@ -1,0 +1,6 @@
+exists alpha1.
+ typedef A as alpha1, 
+  def desloca : (A)  in 
+   exists alpha2.
+    exists alpha3.
+     int = alpha2, int = alpha3, typeof(>>) = (alpha2, alpha3, A)

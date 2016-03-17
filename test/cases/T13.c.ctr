@@ -1,0 +1,28 @@
+exists alpha1.
+ typedef A as alpha1, 
+  exists alpha2.
+   exists alpha3.
+    exists alpha4.
+     exists alpha5.
+      typedef A as alpha2, 
+       typedef A* as alpha3, 
+        typedef A* as alpha4, 
+         typedef A as alpha5, 
+          def fun : (A, A*, A*, A, A)  in 
+           def d : A in 
+            def x : A* in 
+             def y : A* in 
+              def n : A in 
+               exists alpha6.
+                exists alpha7.
+                 exists alpha8.
+                  exists alpha9.
+                   exists alpha10.
+                    exists alpha11.
+                     typeof(x) = alpha9, typeof(d) = alpha10, alpha9 = alpha11*, alpha7 = alpha11, alpha10 = int, exists alpha12.
+                      exists alpha13.
+                       exists alpha14.
+                        typeof(y) = alpha12, typeof(n) = alpha13, alpha12 = alpha14*, alpha8 = alpha14, alpha13 = int, typeof(^) = (alpha7, alpha8, alpha6), 
+                         typedef A as alpha6, def i : alpha6 in 
+                          typeof(i) = A, 
+                           alpha6 = A
