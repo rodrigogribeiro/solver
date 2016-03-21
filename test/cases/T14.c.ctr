@@ -1,0 +1,7 @@
+exists alpha1.
+ typedef int as alpha1, 
+  def c : (int, as*)  in 
+   def a : int in 
+    exists alpha2.
+     exists alpha3.
+      typeof(a) = alpha3, alpha2 = alpha3*, as* = alpha2

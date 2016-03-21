@@ -42,6 +42,7 @@ tests = testGroup "Unit tests"
                   , doTest "shift.c"
                   , doTest "T12.c"
                   , doTest "T13.c"
+                  , doTest "T14.c"
                   ]
 
 
