@@ -43,6 +43,7 @@ tests = testGroup "Unit tests"
                   , doTest "T12.c"
                   , doTest "T13.c"
                   , doTest "T14.c"
+                  , doTest "multiply.c"
                   ]
 
 

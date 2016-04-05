@@ -1,0 +1,32 @@
+exists alpha1.
+ typedef INT as alpha1, 
+  exists alpha2.
+   exists alpha3.
+    exists alpha4.
+     typedef INT* as alpha2, 
+      typedef INT* as alpha3, 
+       typedef INT as alpha4, 
+        def multiply : (INT*, INT*, INT, INT)  in 
+         def a : INT* in 
+          def b : INT* in 
+           def size : INT in 
+            exists alpha5.
+             int = alpha5, 
+              typedef INT as alpha5, def result : alpha5 in 
+               exists alpha6.
+                exists alpha7.
+                 typeof(i) = alpha6, typeof(size) = alpha7, typeof(<) = (alpha6, alpha7, bool), 
+                  typeof(i) = INT, 
+                   exists alpha8.
+                    exists alpha9.
+                     typeof(result) = alpha9, exists alpha10.
+                      exists alpha11.
+                       exists alpha12.
+                        exists alpha13.
+                         exists alpha14.
+                          typeof(a) = alpha12, typeof(i) = alpha13, alpha12 = alpha14*, alpha10 = alpha14, alpha13 = int, exists alpha15.
+                           exists alpha16.
+                            exists alpha17.
+                             typeof(b) = alpha15, typeof(i) = alpha16, alpha15 = alpha17*, alpha11 = alpha17, alpha16 = int, typeof(*) = (alpha10, alpha11, alpha9), 
+                              typeof(result) = INT, 
+                               alpha5 = INT
